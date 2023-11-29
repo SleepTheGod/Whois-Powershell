@@ -7,22 +7,12 @@ if (-not (Test-Path $downloadPath)) {
     Invoke-RestMethod -Uri $whoisURL -OutFile $downloadPath
 }
 
-# Create a shortcut for the whois executable
-$shortcutPath = "$env:USERPROFILE\Desktop\whois.lnk"
-if (-not (Test-Path $shortcutPath)) {
-    $shortcut = New-Object -ComObject WScript.Shell
-    $shortcut.CreateLink($shortcutPath, $downloadPath)
+# Add the directory of whois to the PATH environment variable
+$whoisDirectory = Split-Path $downloadPath
+if (-not $env:Path.Contains($whoisDirectory)) {
+    $env:Path += ";$whoisDirectory"
+    [Environment]::SetEnvironmentVariable("Path", $env:Path, [System.EnvironmentVariableTarget]::Machine)
 }
-
-# Add the whois directory to the PATH environment variable
-$path = (Get-ChildItem -Path "Env:PATH" -SplitPath).Value
-if (-not $path.Contains("C:\whois")) {
-    $path += ";C:\whois"
-    Set-Item -Path "Env:PATH" -Value $path -NoTypeInformation
-}
-
-# Write a message to the console indicating that the installation is complete
-Write-Host "Whois has been installed successfully."
 
 # Perform a domain lookup using whois
 $domainToLookup = "example.com"  # Replace with the domain you want to look up
